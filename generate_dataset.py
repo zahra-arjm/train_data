@@ -63,7 +63,15 @@ for route_i_times in journey_times:
 base = datetime.date(2022, 11, 25)
 date_list = [base - datetime.timedelta(days=x+1) for x in range(7)]
 
+# the plan is to build three separate uniform distributions and add them to build the dataset.
+# the two rush hours on mornings and nights each one get part of the commuters; the rest will be spreaded out 
+# during the whole day
 
+# proportion of passengers in weekday compared to the day total commuters
+rush_morning_per = .4
+rush_nights_per = .3
+# proportion of passengers in weekday compared to weekdays
+weekend_per = .25
 # build a histogram with a uniform distribution. Bin width is equal to minimum of the difference between train times
 
 # rush hour starts at
@@ -92,7 +100,7 @@ for day in range(len(date_list)):
   
   
   # transform counts into frequencies multiplied by 40 percent morning travels
-  counts = counts / ( passenger_n  * len(rush_morning)) * bin_no * .4 # considering empty bins with no trains
+  counts = counts / ( passenger_n  * len(rush_morning)) * bin_no * rush_morning_per # considering empty bins with no trains
   
   ##assign frequncuies to each journey
 
@@ -129,7 +137,7 @@ for day in range(len(date_list)):
                         size=passenger_n),
       bins = bin_no)
   # transform counts into frequencies multiplied by 30 percent morning travels 
-  counts = counts / (passenger_n  * len(rush_nights)) * bin_no * .3  # considering empty bins with no trains
+  counts = counts / (passenger_n  * len(rush_nights)) * bin_no * rush_nights_per  # considering empty bins with no trains
   ##assign frequncuies to each journey
   # find train-time which fits within each bin of the histogram
   for bin_i in range(len(bins)-1):
@@ -155,7 +163,7 @@ for day in range(len(date_list)):
   np.random.seed(2022+day)
   #if weekend, reduce the number of passengers is about 25 percent of normal days
   if date_list[day].weekday() >= 5:
-    passenger_no = int(passenger_n * (.25 + random.uniform(0, .05)))
+    passenger_no = int(passenger_n * (weekend_per + random.uniform(0, .05)))
   else:
     passenger_no = passenger_n
   # number of bins, such that each bin only contains one journey
@@ -225,6 +233,7 @@ train_passenger_df['arrival_time'] = ['0' + time[:] if len(time) == 4 else time 
 (train_passenger_df.groupby('arrival_time').route.value_counts()
    .unstack().plot.bar(width=1, stacked=True))
 
+plt.title("Number of passengers in each journey in a week")
 plt.show()
 
 train_passenger_df.to_csv('train_data.csv')
