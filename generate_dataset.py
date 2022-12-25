@@ -1,6 +1,23 @@
+def arrival_times_in_range(range_hours, arrival_times):
+  arrival_times_in_range = arrival_times[np.where(np.logical_and(arrival_times>=range_hours[0], arrival_times<=range_hours[1]))]
+  return arrival_times_in_range
+
+
+def update_journey_freq_day(hist_bins, arrival_times, train_route_time_zip, journey_freq_day):
+    # find train-time which fits within each bin of the histogram
+  for bin_i in range(len(hist_bins)-1):
+    t_time = arrival_times[np.where(np.logical_and(arrival_times>=hist_bins[bin_i], arrival_times<=hist_bins[bin_i+1]))]
+    # find index of the journey in the list of tuples of journeys if t_time is not empty
+    if len(t_time):
+      t_idx = [idx for idx, tup in enumerate(train_route_time_zip) if tup[2] == t_time]
+      # set frequency of the journey to histogram count if t_idx is not empty
+      if len(t_idx): 
+        journey_freq_day[t_idx[0]] = counts[bin_i]
+  return journey_freq_day
+
+
 import numpy as np
 import matplotlib.pyplot as plt
-
 import pandas as pd
 import random
 import datetime
@@ -11,7 +28,8 @@ random.seed(202211)
 
 #number of passengers per weekday
 passenger_n = 10000
-
+# maximum capacity of the train
+max_capacity = 500
 
 #possible routes
 routes = ['A', 'B', 'C', 'D', 'E']
@@ -30,15 +48,15 @@ journey_per_route_n = [np.random.randint(1,20) for x in routes]
 # keep journey time in list of lists
 journey_times = []
 # keep all the times in one list
-hours = []
+arrival_times = []
 # generate uniformly distributed hours for each route throughout the day with random start and end (from 6 am to 11 pm plus minus 1 hour)
 for route_i in range(len(routes)):
   route_i_times = list(np.linspace(start=6+((np.random.rand())*2 - 1), stop=(23+((np.random.rand())*2 - 1)), num=journey_per_route_n[route_i]))
   journey_times.append(route_i_times)
-  hours.extend(route_i_times)
+  arrival_times.extend(route_i_times)
 #transform to numpy array and sort
-hours = np.array(hours)
-hours.sort()
+arrival_times = np.array(arrival_times)
+arrival_times.sort()
 
 route_i = 0
 train_route_time_zip = []
@@ -69,21 +87,16 @@ date_list = [base - datetime.timedelta(days=x+1) for x in range(7)]
 
 # proportion of passengers in weekday compared to the day total commuters
 rush_morning_per = .4
-rush_nights_per = .3
+rush_night_per = .3
 # proportion of passengers in weekday compared to weekdays
 weekend_per = .25
-# build a histogram with a uniform distribution. Bin width is equal to minimum of the difference between train times
-
-# rush hour starts at
-rush_m_start = 7
-# rush hour ends at
-rush_m_end = 10
-# find the min difference between train arrivals in the morning rush hours
-rush_morning = hours[np.where(np.logical_and(hours>=rush_m_start, hours<=rush_m_end))]
-min_rush_m = np.diff(rush_morning).min()
 
 # empty list of frequencies for all journeys
 journey_freq = [[0] * len(train_route_time_zip) for _ in range(len(date_list))]
+# build a histogram with a uniform distribution. Bin width is equal to minimum of the difference between train times
+
+range_rush_morning = (7, 10)
+rush_morning_arrivals = arrival_times_in_range(range_rush_morning, arrival_times)
 
 for day in range(len(date_list)):
   #skip weekends!
@@ -92,70 +105,83 @@ for day in range(len(date_list)):
 # make each day unique by setting a different seed
   np.random.seed(2022+day)
   # number of bins, such that each bin only contains one journey
-  bin_no = int((rush_m_end - rush_m_start)/min_rush_m)
+  bin_no = int((range_rush_morning[1] - range_rush_morning[0])/np.diff(rush_morning_arrivals).min())
   counts, bins, bars = plt.hist(
-      np.random.uniform(low=rush_m_start, high=rush_m_end,
+      np.random.uniform(low=range_rush_morning[0], high=range_rush_morning[1],
                         size=passenger_n),
       bins = bin_no)
   
   
-  # transform counts into frequencies multiplied by 40 percent morning travels
-  counts = counts / ( passenger_n  * len(rush_morning)) * bin_no * rush_morning_per # considering empty bins with no trains
-  
-  ##assign frequncuies to each journey
+  # transform counts into frequencies multiplied by percentage of morning travels
+  counts = counts / ( passenger_n  * len(rush_morning_arrivals)) * bin_no * rush_morning_per # considering empty bins with no trains
+ 
+  journey_freq[day] = update_journey_freq_day(bins, rush_morning_arrivals, train_route_time_zip, journey_freq[day])
 
-  # find train-time which fits within each bin of the histogram
-  for bin_i in range(len(bins)-1):
-    t_time = rush_morning[np.where(np.logical_and(rush_morning>=bins[bin_i], rush_morning<=bins[bin_i+1]))]
-    # find index of the journey in the list of tuples of journeys if t_time is not empty
-    if len(t_time):
-      t_idx = [idx for idx, tup in enumerate(train_route_time_zip) if tup[2] == t_time]
-      # set frequency of the journey to histogram count if t_idx is not empty
-      if len(t_idx): 
-        journey_freq[day][t_idx[0]] = counts[bin_i]
-
-#Repeat for night rush hours (6-9 pm since it is arrival times)
+#Repeat for night rush hours
 # build a histogram with a uniform distribution. Bin width is equal to minimum of the difference between train times
-
-# rush hour starts at
-rush_n_start = 18
-# rush hour ends at
-rush_n_end = 21
-# find the min difference between train arrivals in the morning rush hours
-rush_nights = hours[np.where(np.logical_and(hours>=rush_n_start, hours<=rush_n_end))]
-min_rush_n = np.diff(rush_nights).min()
+range_rush_night = (18, 21)
+rush_night_arrivals = arrival_times_in_range(range_rush_night, arrival_times)
 
 for day in range(len(date_list)):
   #skip weekends!
   if date_list[day].weekday() >= 5:
     continue
+# make each day unique by setting a different seed
   np.random.seed(2022+day)
   # number of bins, such that each bin only contains one journey
-  bin_no = int((rush_n_end - rush_n_start)/min_rush_n)
+  bin_no = int((range_rush_night[1] - range_rush_night[0])/np.diff(rush_night_arrivals).min())
   counts, bins, bars = plt.hist(
-      np.random.uniform(low=rush_n_start, high=rush_n_end,
+      np.random.uniform(low=range_rush_night[0], high=range_rush_night[1],
                         size=passenger_n),
       bins = bin_no)
-  # transform counts into frequencies multiplied by 30 percent morning travels 
-  counts = counts / (passenger_n  * len(rush_nights)) * bin_no * rush_nights_per  # considering empty bins with no trains
-  ##assign frequncuies to each journey
-  # find train-time which fits within each bin of the histogram
-  for bin_i in range(len(bins)-1):
-    t_time = rush_nights[np.where(np.logical_and(rush_nights>=bins[bin_i], rush_nights<=bins[bin_i+1]))]
-    # find index of the journey in the list of tuples of journeys if t_time is not empty
-    if len(t_time):
-      t_idx = [idx for idx, tup in enumerate(train_route_time_zip) if tup[2] == t_time]
-      # set frequency of the journey to histogram count if t_idx is not empty
-    if len(t_idx):   
-        journey_freq[day][t_idx[0]] = counts[bin_i]
+  
+  
+  # transform counts into frequencies multiplied by percentage of night travels
+  counts = counts / ( passenger_n  * len(rush_night_arrivals)) * bin_no * rush_night_per # considering empty bins with no trains
+ 
+  journey_freq[day] = update_journey_freq_day(bins, rush_night_arrivals, train_route_time_zip, journey_freq[day])
+
+
+
+
+# # rush hour starts at
+# rush_n_start = 18
+# # rush hour ends at
+# rush_n_end = 21
+# # find the min difference between train arrivals in the morning rush hours
+# rush_nights = arrival_times[np.where(np.logical_and(arrival_times>=rush_n_start, arrival_times<=rush_n_end))]
+# min_rush_n = np.diff(rush_nights).min()
+
+# for day in range(len(date_list)):
+#   #skip weekends!
+#   if date_list[day].weekday() >= 5:
+#     continue
+#   np.random.seed(2022+day)
+#   # number of bins, such that each bin only contains one journey
+#   bin_no = int((rush_n_end - rush_n_start)/min_rush_n)
+#   counts, bins, bars = plt.hist(
+#       np.random.uniform(low=rush_n_start, high=rush_n_end,
+#                         size=passenger_n),
+#       bins = bin_no)
+#   # transform counts into frequencies multiplied by 30 percent morning travels 
+#   counts = counts / (passenger_n  * len(rush_nights)) * bin_no * rush_nights_per  # considering empty bins with no trains
+#   ##assign frequncuies to each journey
+#   # find train-time which fits within each bin of the histogram
+#   for bin_i in range(len(bins)-1):
+#     t_time = rush_nights[np.where(np.logical_and(rush_nights>=bins[bin_i], rush_nights<=bins[bin_i+1]))]
+#     # find index of the journey in the list of tuples of journeys if t_time is not empty
+#     if len(t_time):
+#       t_idx = [idx for idx, tup in enumerate(train_route_time_zip) if tup[2] == t_time]
+#       # set frequency of the journey to histogram count if t_idx is not empty
+#     if len(t_idx):   
+#         journey_freq[day][t_idx[0]] = counts[bin_i]
 
 # Now we add a uniform distribution to the frequency of all journeys throughout the day
 # first train arrives at
-t_first = min(hours) - .001
+t_first = min(arrival_times) - .001
 # last train arrives at
-t_last = max(hours) + .001
-# find the min difference between train arrivals
-min_t_arrivals = np.diff(hours).min()
+t_last = max(arrival_times) + .001
+
 # transform counts into frequencies multiplied by remaining percentage of travels
 journey_freq_sums = [sum(sublist) for sublist in journey_freq]
 for day in range(len(date_list)):
@@ -167,25 +193,15 @@ for day in range(len(date_list)):
   else:
     passenger_no = passenger_n
   # number of bins, such that each bin only contains one journey
-  bin_no = int((t_last - t_first)/min_t_arrivals)
+  bin_no = int((t_last - t_first)/np.diff(arrival_times).min())
   counts, bins, bars = plt.hist(
       np.random.uniform(low=t_first, high=t_last,
                         size=passenger_no),
       bins = bin_no)
   
 
-  counts = counts / (passenger_no  * len(hours)) * bin_no * (1 - journey_freq_sums[day]) # considering empty bins with no trains
-  ##assign frequncuies to each journey and transform it into passenger numbers
-  # find train-time which fits within each bin of the histogram
-  for bin_i in range(len(bins)-1):
-    t_time = hours[np.where(np.logical_and(hours>=bins[bin_i], hours<=bins[bin_i+1]))]
-    # find index of the journey in the list of tuples of journeys if t_time is not empty
-    if len(t_time):
-      t_idx = [idx for idx, tup in enumerate(train_route_time_zip) if tup[2] == t_time]
-      # print(t_idx)
-      # set frequency of the journey to histogram count if t_idx is not empty
-      if len(t_idx):
-        journey_freq[day][t_idx[0]] += counts[bin_i]
+  counts = counts / (passenger_no  * len(arrival_times)) * bin_no * (1 - journey_freq_sums[day]) # considering empty bins with no trains
+  journey_freq[day] = update_journey_freq_day(bins, arrival_times, train_route_time_zip, journey_freq[day])
 
 # normalize joureny_freq for each day
 journey_freq_sums = [sum(sublist) for sublist in journey_freq]
@@ -193,8 +209,7 @@ for day in range(len(date_list)):
   journey_freq[day] /= journey_freq_sums[day]
 # multiply by the number of passengers and transform to integers
 journey_passenger_n = [int(x * passenger_n) for day_freq in journey_freq for x in day_freq]
-# the max capacity of the train
-max_capacity = 500
+
 # trim the number of passengers per journey accordingly
 journey_passenger_n = [x if x < max_capacity else max_capacity for x in journey_passenger_n]
 
@@ -236,4 +251,4 @@ train_passenger_df['arrival_time'] = ['0' + time[:] if len(time) == 4 else time 
 plt.title("Number of passengers in each journey in a week")
 plt.show()
 
-train_passenger_df.to_csv('train_data.csv')
+# train_passenger_df.to_csv('train_data.csv')
