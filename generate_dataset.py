@@ -12,7 +12,7 @@ def update_journey_freq_day(hist_bins, arrival_times, train_route_time_zip, jour
       t_idx = [idx for idx, tup in enumerate(train_route_time_zip) if tup[2] == t_time]
       # set frequency of the journey to histogram count if t_idx is not empty
       if len(t_idx): 
-        journey_freq_day[t_idx[0]] = counts[bin_i]
+        journey_freq_day[t_idx[0]] += counts[bin_i]
   return journey_freq_day
 
 
