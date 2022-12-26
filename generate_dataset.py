@@ -47,14 +47,14 @@ journey_per_route_n = [np.random.randint(1,20) for x in routes]
 
 # keep journey time in list of lists
 journey_times = []
-# keep all the times in one list
+# keep all the train times
 arrival_times = []
 # generate uniformly distributed hours for each route throughout the day with random start and end (from 6 am to 11 pm plus minus 1 hour)
 for route_i in range(len(routes)):
   route_i_times = list(np.linspace(start=6+((np.random.rand())*2 - 1), stop=(23+((np.random.rand())*2 - 1)), num=journey_per_route_n[route_i]))
   journey_times.append(route_i_times)
   arrival_times.extend(route_i_times)
-#transform to numpy array and sort
+
 arrival_times = np.array(arrival_times)
 arrival_times.sort()
 
@@ -88,7 +88,7 @@ date_list = [base - datetime.timedelta(days=x+1) for x in range(7)]
 # proportion of passengers in weekday compared to the day total commuters
 rush_morning_per = .4
 rush_night_per = .3
-# proportion of passengers in weekday compared to weekdays
+# proportion of passengers in weekends compared to weekdays
 weekend_per = .25
 
 # empty list of frequencies for all journeys
@@ -109,7 +109,7 @@ for day in range(len(date_list)):
       np.random.uniform(low=range_rush_morning[0], high=range_rush_morning[1],
                         size=passenger_n),
       bins = bin_no)
-  
+  plt.title("Orignial histograms generated for different parts of different days")
   
   # transform counts into frequencies multiplied by percentage of morning travels
   counts = counts / ( passenger_n  * len(rush_morning_arrivals)) * bin_no * rush_morning_per # considering empty bins with no trains
@@ -117,7 +117,6 @@ for day in range(len(date_list)):
   journey_freq[day] = update_journey_freq_day(bins, rush_morning_arrivals, train_route_time_zip, journey_freq[day])
 
 #Repeat for night rush hours
-# build a histogram with a uniform distribution. Bin width is equal to minimum of the difference between train times
 range_rush_night = (18, 21)
 rush_night_arrivals = arrival_times_in_range(range_rush_night, arrival_times)
 
