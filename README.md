@@ -25,12 +25,8 @@ Each row reflects data on a particular journey. The variables in the columns are
 >	
 >**date** - the date of the journey
 
+Download the data here: [train_data.csv](train_data.csv)
+
 ## What you'll learn
 
-The interesting questions in data analysis help you better understand the question, as much as they provide interesting answers. Although we've created an example with artificial data, we think tackling this problem will teach you a number of fundamental data science skills. These include
-
-* dealing with under-specified questions
-* data imports and preprocessing ("data wrangling")
-* generating summary statistics using different basis-units
-
-If this last item doesn't make much sense to you, you may be exactly the sort of person who would benefit from working through this challenge.
+The interesting questions in data analysis help you better understand the question, as much as they provide interesting answers. We believe you'll learn the most if you just have a go at answering the question in any way you think approrpiate. If you're not up for that, we've provided some brief [answer notes](answernotes.md)
