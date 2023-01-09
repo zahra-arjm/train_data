@@ -9,6 +9,8 @@ Passengers on City Trains complain that most journeys they take are too crowded.
 
 ## The data
 
+Looks like this
 
+![first rows of dataframe](head.png "The Data")
 
 

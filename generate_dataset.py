@@ -1,3 +1,15 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Python code for generating train-passenger data
+"""
+
+# you can install conda environment with this terminal command
+# conda env create --name dataviz --file environment.yml
+
+#set up environment
+
+
 def arrival_times_in_range(range_hours, arrival_times):
   arrival_times_in_range = arrival_times[np.where(np.logical_and(arrival_times>=range_hours[0], arrival_times<=range_hours[1]))]
   return arrival_times_in_range
@@ -173,7 +185,8 @@ for day in range(len(date_list)):
 # normalize joureny_freq for each day
 journey_freq_sums = [sum(sublist) for sublist in journey_freq]
 for day in range(len(date_list)):
-  journey_freq[day] /= journey_freq_sums[day]
+  journey_freq[day] /= journey_freq_sums[day] # <----------------------ERROR HERE?? divide by zero?
+  
 # multiply by the number of passengers and transform to integers
 journey_passenger_n = [int(x * passenger_n) for day_freq in journey_freq for x in day_freq]
 
@@ -218,4 +231,5 @@ train_passenger_df['arrival_time'] = ['0' + time[:] if len(time) == 4 else time 
 plt.title("Number of passengers in each journey in a week")
 plt.show()
 
-train_passenger_df.to_csv('train_data.csv')
+#add shuffle when exporting the data - why make things transparent, eh?
+train_passenger_df.sample(frac = 1).to_csv('train_data.csv')
