@@ -15,12 +15,22 @@ Looks like this
 
 Each row reflects data on a particular journey. The variables in the columns are
 
-	**train_id** - an ID code for the train taking the journey
-	
-	**route** - the route
-	
-	**arrival_time** - the arrival time
-	
-	**passenger_id** - an ID code for the passenger taking the journey
-	
-	**date** - the date of the journey
+>**train_id** - an ID code for the train taking the journey
+>	
+>**route** - the route
+>
+>**arrival_time** - the arrival time
+>
+>**passenger_id** - an ID code for the passenger taking the journey
+>	
+>**date** - the date of the journey
+
+## What you'll learn
+
+The interesting questions in data analysis help you better understand the question, as much as they provide interesting answers. Although we've created an example with artificial data, we think tackling this problem will teach you a number of fundamental data science skills. These include
+
+* dealing with under-specified questions
+* data imports and preprocessing ("data wrangling")
+* generating summary statistics using different basis-units
+
+If this last item doesn't make much sense to you, you may be exactly the sort of person who would benefit from working through this challenge.
