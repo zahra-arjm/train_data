@@ -1,4 +1,6 @@
-# A data science challenge
+# Are the trains busy or not?
+
+# - a data science challenge
 
 A data set and a conundrum, designed to teach fundamental data science concepts of data wrangling.
 CC-BY Zahra Arjmandi & [Tom Stafford](https://tomstafford.sites.sheffield.ac.uk/), 2023
