@@ -109,7 +109,7 @@ for day in range(len(date_list)):
       np.random.uniform(low=range_rush_morning[0], high=range_rush_morning[1],
                         size=passenger_n),
       bins = bin_no)
-  plt.title("Orignial histograms generated for different parts of different days")
+  plt.close()
   
   # transform counts into frequencies multiplied by percentage of morning travels
   counts = counts / ( passenger_n  * len(rush_morning_arrivals)) * bin_no * rush_morning_per # considering empty bins with no trains
@@ -132,7 +132,7 @@ for day in range(len(date_list)):
       np.random.uniform(low=range_rush_night[0], high=range_rush_night[1],
                         size=passenger_n),
       bins = bin_no)
-  
+  plt.close()
   
   # transform counts into frequencies multiplied by percentage of night travels
   counts = counts / ( passenger_n  * len(rush_night_arrivals)) * bin_no * rush_night_per # considering empty bins with no trains
@@ -165,7 +165,7 @@ for day in range(len(date_list)):
       np.random.uniform(low=t_first, high=t_last,
                         size=passenger_no),
       bins = bin_no)
-  
+  plt.close()
 
   counts = counts / (passenger_no  * len(arrival_times)) * bin_no * (1 - journey_freq_sums[day]) # considering empty bins with no trains
   journey_freq[day] = update_journey_freq_day(bins, arrival_times, train_route_time_zip, journey_freq[day])
