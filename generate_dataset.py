@@ -185,8 +185,8 @@ for day in range(len(date_list)):
 # normalize joureny_freq for each day
 journey_freq_sums = [sum(sublist) for sublist in journey_freq]
 for day in range(len(date_list)):
-  journey_freq[day] /= journey_freq_sums[day] # <----------------------ERROR HERE?? divide by zero?
-  
+  journey_freq[day] /= journey_freq_sums[day] 
+
 # multiply by the number of passengers and transform to integers
 journey_passenger_n = [int(x * passenger_n) for day_freq in journey_freq for x in day_freq]
 
