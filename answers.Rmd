@@ -2,7 +2,9 @@
 title: "Answers to [train data challenge](https://github.com/zahra-arjm/train_data/blob/main/README.md)"
 author: "Zahra Arjmandi Lari, Tom Stafford"
 date: "January 24, 2023"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 Although we've created an example with artificial data, we think tackling this problem will teach you a number of fundamental data science skills. These include:
 
