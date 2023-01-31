@@ -31,4 +31,4 @@ Download the data here: [train_data.csv](train_data.csv)
 
 ## What you'll learn
 
-The interesting questions in data analysis help you better understand the question, as much as they provide interesting answers. We believe you'll learn the most if you just have a go at answering the question in any way you think approrpiate. If you're not up for that, we've provided some brief [answer notes](answernotes.md)
+The interesting questions in data analysis help you better understand the question, as much as they provide interesting answers. We believe you'll learn the most if you just have a go at answering the question in any way you think approrpiate. If you're not up for that, we've provided some brief [answer notes](answers.pdf)
