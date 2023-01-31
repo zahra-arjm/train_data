@@ -1,0 +1,159 @@
+---
+title: "Answers to [train data challenge](https://github.com/zahra-arjm/train_data/blob/main/README.md)"
+author: "Zahra Arjmandi Lari, Tom Stafford"
+date: "January 24, 2023"
+output: html_document
+---
+Although we've created an example with artificial data, we think tackling this problem will teach you a number of fundamental data science skills. These include:
+
+* dealing with under-specified questions
+* data imports and preprocessing ("data wrangling")
+* filtering and slicing data
+* generating summary statistics using different basis-units [maybe change it to "approaches" or sth else?]
+
+If this last item doesn't make much sense to you, you may be exactly the sort of person who would benefit from working through this challenge.
+
+[detailed work through of a possible analysis of this data, and how it illustrates the importance of understanding different basis units, to come here]
+
+First importing the needed libraries. We need to install them in case they were not installed before (uncomment the commented lines if you get an error by running `library(package_name)`)
+``` {r, message=FALSE}
+#install.packages("dplyr")
+#install.packages("ggplot2")
+#install.packages("lubridate")
+library("dplyr")
+library("ggplot2")
+library(lubridate)
+```
+
+Then, import the data:
+``` {r}
+df <- read.csv('train_data.csv')
+```
+Take a look at first five rows of the data
+
+``` {r}
+head(df)
+```
+
+And take a look at the data in each column:
+``` {r}
+str(df)
+```
+
+It seems most columns include categorical variable. Let's see what are their unique values:
+``` {r}
+unique(df$train_id)
+unique(df$route)
+unique(df$arrival_time)
+```
+It seems like we have multiple trains which run in 5 routes and arrived to the destination at different time throughout the day.
+
+Since we want to look at every single journey and none of the variables show us a specific joureny on their own, we need o combine them:
+```{r, message=FALSE}
+journeys <- df %>% 
+  group_by(train_id, route, arrival_time, date) %>% 
+  summarise(passenger_count = n())
+journeys
+```
+Each row in `journeys` is a unique combination of `trin_id`, `route`, `arrival_time` and `date`. `passenger_count` variable shows the count of that specific combination, which is the number of passengers in that journey.
+
+Now that we have number of passengers per journey, we can take a look at its distribution.
+```{r, message=FALSE}
+ggplot(journeys, aes(x = passenger_count)) +
+  geom_histogram(binwidth = 25)
+```
+
+There are a lot of trains which run near empty, and a lot of them which are full. Let's extract summary statistics:
+```{r}
+summary(journeys$passenger_count)
+```
+based on the number of passengers per journey, we can see that the average number of passenger per journey is 214. Given that the maximum number of passengers in a journey is 500 (the capacity of a train) and the median of the passenger count is 102, more that half of the trains are more than half empty. In fact we can check out how many journeys run with less than 250 passengers.
+```{r}
+sum(journeys$passenger_count < 250)
+```
+179 trains were less than half empty; what is the frequency of half empty trains?
+```{r}
+sum(journeys$passenger_count < 250) / length(journeys$passenger_count)
+```
+63% ! it seems that the argument of train companies are true about half train running half empty!
+But what about how passenger feel? Do passengers have a point when complaining about crowded trains?
+
+Let's add a column to the original data frame `df`, showing the number of passenger in each journey.
+```{r}
+df <- df %>%
+  group_by(arrival_time, date) %>%
+  mutate(passengerc_count = n())
+head(df)
+```
+And define a busy train to be 80% full.
+```{r}
+max_capacity = 500
+busy_train_percent = .8
+```
+To calculate the frequency of passengers commuting with a "busy" train, we can write:
+```{r}
+sum(df$passengerc_count > busy_train_percent * max_capacity) /
+  length(df$passengerc_count)
+```
+54% of passengers are commuting with busy trains! It seems the commuters also have a point!
+
+We can also make a bar plot from crowdedness of the trains, based on the time they have arrived.
+```{r}
+ggplot(journeys, aes(x = arrival_time, y = passenger_count, fill = route)) + 
+  geom_bar(stat = "identity") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 1, hjust=1)) +
+  scale_fill_brewer(palette="Set2")
+```
+
+See that there are two pick hours during the day. One in the morning and one at night. That's why people feel they are commuting in busy trains. A lot of people commute during rush hours!
+Let's check which dates we have data for.
+```{r}
+sort(unique(df$date))
+```
+We have 7 consequetive dates. But is the above pattern the same in the weekends and weekdays? Let's try to separate the data from weekends!
+
+The function `wday()` gives us which day of the week a date is.
+```{r}
+df$date[1]
+wday(df$date[1], label=TRUE, abbr=FALSE)
+```
+We can also handle the days of the week numerically. It would make our lives easier in the code! It seems like the first day is Sunday, and the last day is Saturday.
+Let's check if that is true for a date which is Saturday.
+```{r}
+day = "2022-11-19"
+wday(day)
+```
+Now, we need to make a column for weekdays in the `journeys` dataframe.
+```{r}
+journeys$week_day = wday(journeys$date)
+head(journeys)
+```
+Now we filter the weekends by slicing through the `journeys` dataframe.
+```{r}
+weekend_journeys = journeys[journeys$week_day == 1 | journeys$week_day == 7,]
+head(weekend_journeys)
+```
+And make a bar plot for the weekend journeys.
+```{r}
+ggplot(weekend_journeys, aes(x = arrival_time, y = passenger_count, fill = route)) + 
+  geom_bar(stat = "identity") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 1, hjust=1)) +
+  scale_fill_brewer(palette="Set2")
+```
+
+No rush hour patterns!
+What about weekdays?
+```{r}
+weekday_journeys = journeys[journeys$week_day != 1 | journeys$week_day != 7,]
+ggplot(weekday_journeys, aes(x = arrival_time, y = passenger_count, fill = route)) + 
+  geom_bar(stat = "identity") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 1, hjust=1)) +
+  scale_fill_brewer(palette="Set2")
+```
+
+The rush hour pattern is present!
+
+Hope you have enjoyed! :)
+
+
+
