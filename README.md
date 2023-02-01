@@ -1,5 +1,6 @@
 # Are the trains busy or not?
-
+![Paddington Station](https://github.com/zahra-arjm/train_data/raw/main/train_station.jpg)
+*Image from https://www.flickr.com/photos/dgmckelvey/9666852977*
 # - a data science challenge
 
 A data set and a conundrum, designed to teach fundamental data science concepts of data wrangling.
