@@ -49,8 +49,27 @@ unique(df$route)
 unique(df$arrival_time)
 ```
 It seems like we have multiple trains which run in 5 routes and arrived to the destination at different time throughout the day.
+Plus, it seems there are some missing values in this data set. Let's see how many data points have missing values.
+```{r}
+sum(is.na(df))
+```
 
-Since we want to look at every single journey and none of the variables show us a specific joureny on their own, we need o combine them:
+It looks like we cannot handle the missing values like "" with `na` functions in r. But we can search for empty elements in the data set and replace them with NA.
+```{r}
+df <- replace(df, df=='', NA)
+sum(is.na(df))
+```
+The data set has ~3000 missing values. Let's see what percentage of the data would that be.
+```{r}
+sum(is.na(df)) / nrow(df) * 100
+```
+Around 5%. Let's get rid of the rows with a missing value, then!
+```{r}
+df = na.omit(df)
+#check if everything is ok now
+sum(is.na(df))
+```
+Since we wanted to look at every single journey and none of the variables show us a specific journey on their own, we need o combine them:
 ```{r, message=FALSE}
 journeys <- df %>% 
   group_by(train_id, route, arrival_time, date) %>% 
