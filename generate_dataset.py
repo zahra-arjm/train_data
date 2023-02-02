@@ -231,5 +231,13 @@ train_passenger_df['arrival_time'] = ['0' + time[:] if len(time) == 4 else time 
 plt.title("Number of passengers in each journey in a week")
 plt.show()
 
+#add missing values
+missing_value_freq = .05
+missing_value_no = int(missing_value_freq * len(train_passenger_df))
+missing_idx = np.random.randint(0, len(train_passenger_df), missing_value_no)
+for i in missing_idx:
+  train_passenger_df.iat[i, np.random.randint(0, len(train_passenger_df.columns)-1)] = None
+
+
 #add shuffle when exporting the data - why make things transparent, eh?
 train_passenger_df.sample(frac = 1).to_csv('train_data.csv')
